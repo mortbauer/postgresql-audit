@@ -144,7 +144,6 @@ BEGIN
     );
     audit_row.verb = COALESCE(audit_row_values.verb, LOWER(TG_OP));
     audit_row.actor_id = audit_row_values.actor_id;
-    audit_row.target_id = audit_row_values.target_id;
     audit_row.old_data = NULL;
     audit_row.changed_data = NULL;
 
@@ -154,6 +153,7 @@ BEGIN
 
     IF (TG_OP = 'UPDATE' AND TG_LEVEL = 'ROW') THEN
         audit_row.old_data = row_to_json(OLD.*)::jsonb - excluded_cols;
+        audit_row.target_id = OLD.id;
         audit_row.changed_data = (
             row_to_json(NEW.*)::jsonb - audit_row.old_data - excluded_cols
         );
@@ -163,8 +163,10 @@ BEGIN
         END IF;
     ELSIF (TG_OP = 'DELETE' AND TG_LEVEL = 'ROW') THEN
         audit_row.old_data = row_to_json(OLD.*)::jsonb - excluded_cols;
+        audit_row.target_id = OLD.id;
     ELSIF (TG_OP = 'INSERT' AND TG_LEVEL = 'ROW') THEN
         audit_row.changed_data = row_to_json(NEW.*)::jsonb - excluded_cols;
+        audit_row.target_id = NEW.id;
     ELSE
         RAISE EXCEPTION '[audit.create_activity] - Trigger func added as trigger for unhandled case: %, %', TG_OP, TG_LEVEL;
         RETURN NULL;

@@ -89,7 +89,7 @@ def activity_base(base):
         transaction_id = sa.Column(sa.BigInteger)
         client_addr = sa.Column(INET)
         verb = sa.Column(sa.Text)
-        target_id = sa.Column(sa.Text)
+        target_id = sa.Column(sa.Integer)
         old_data = sa.Column(JSONB)
         changed_data = sa.Column(JSONB)
 
